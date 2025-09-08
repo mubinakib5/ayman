@@ -107,12 +107,20 @@ class SSLCommerzService {
         ...paymentData,
       };
 
+      // Convert all values to strings for URLSearchParams
+      const formData = Object.entries(data).reduce((acc, [key, value]) => {
+        if (value !== undefined && value !== null) {
+          acc[key] = String(value);
+        }
+        return acc;
+      }, {} as Record<string, string>);
+
       const response = await fetch(`${this.baseUrl}/gwprocess/v4/api.php`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: new URLSearchParams(data as Record<string, string>),
+        body: new URLSearchParams(formData),
       });
 
       if (!response.ok) {

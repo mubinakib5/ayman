@@ -40,7 +40,12 @@ export async function uploadToCloudinary(
       ...options,
     };
 
-    const result = await cloudinary.uploader.upload(file, uploadOptions);
+    // Convert Buffer to base64 data URL if needed
+    const fileToUpload = Buffer.isBuffer(file) 
+      ? `data:application/octet-stream;base64,${file.toString('base64')}`
+      : file;
+
+    const result = await cloudinary.uploader.upload(fileToUpload, uploadOptions);
     
     return {
       public_id: result.public_id,

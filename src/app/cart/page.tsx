@@ -8,16 +8,14 @@ import Image from 'next/image';
 export default function CartPage() {
   const { 
     state, 
-    removeFromCart, 
+    removeItem, 
     updateQuantity, 
-    clearCart, 
-    getTotalPrice, 
-    getTotalItems 
+    clearCart
   } = useCart();
 
-  const { items } = state;
-  const totalPrice = getTotalPrice();
-  const totalItems = getTotalItems();
+  const { items, total, itemCount } = state;
+  const totalPrice = total;
+  const totalItems = itemCount;
 
   if (items.length === 0) {
     return (
@@ -118,7 +116,7 @@ export default function CartPage() {
                       <div className="flex items-center space-x-3">
                         <div className="flex items-center border border-gray-300 rounded-lg">
                           <button
-                            onClick={() => updateQuantity(item.id, item.format, Math.max(1, item.quantity - 1))}
+                            onClick={() => updateQuantity(item.id, item.type, Math.max(1, item.quantity - 1))}
                             className="p-2 hover:bg-gray-100 transition-colors"
                             disabled={item.quantity <= 1}
                           >
@@ -128,7 +126,7 @@ export default function CartPage() {
                           </button>
                           <span className="px-4 py-2 text-sm font-medium">{item.quantity}</span>
                           <button
-                            onClick={() => updateQuantity(item.id, item.format, item.quantity + 1)}
+                            onClick={() => updateQuantity(item.id, item.type, item.quantity + 1)}
                             className="p-2 hover:bg-gray-100 transition-colors"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -138,7 +136,7 @@ export default function CartPage() {
                         </div>
 
                         <button
-                          onClick={() => removeFromCart(item.id, item.format)}
+                          onClick={() => removeItem(item.id, item.type)}
                           className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
                         >
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

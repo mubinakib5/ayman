@@ -8,10 +8,10 @@ import Button from '@/components/ui/Button';
 
 const Header: React.FC = () => {
   const { data: session } = useSession();
-  const { getTotalItems, state } = useCart();
+  const { state } = useCart();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
-  const totalItems = getTotalItems();
+  const totalItems = state.itemCount;
 
   const navigation = [
     { name: 'Home', href: '/' },
@@ -68,7 +68,7 @@ const Header: React.FC = () => {
             {/* User Menu */}
             {session ? (
               <div className="flex items-center space-x-3">
-                {session.user?.isAdmin && (
+                {session.user?.role === 'admin' && (
                   <Link
                     href="/admin"
                     className="text-sm text-gray-700 hover:text-yellow-600 font-medium transition-colors duration-200"
@@ -133,7 +133,7 @@ const Header: React.FC = () => {
                 </Link>
               ))}
               
-              {session?.user?.isAdmin && (
+              {session?.user?.role === 'admin' && (
                 <Link
                   href="/admin"
                   className="text-gray-700 hover:text-yellow-600 px-3 py-2 text-base font-medium transition-colors duration-200"

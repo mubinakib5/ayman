@@ -1,18 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { connectDB } from '@/lib/mongodb';
-import { Order } from '@/models/Order';
+import { connectToDatabase } from '@/lib/mongodb';
+import { Order } from '@/lib/models/Order';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await connectDB();
+    await connectToDatabase();
     
     const session = await getServerSession(authOptions);
-    const orderId = params.id;
+    const { id: orderId } = await params;
 
     if (!orderId) {
       return NextResponse.json(
@@ -37,7 +37,7 @@ export async function GET(
     }
 
     // If user is not admin, only allow access to their own orders
-    if (!session?.user?.isAdmin && session?.user?.email !== order.customer.email) {
+    if (session?.user?.role !== 'admin' && session?.user?.email !== order.customer.email) {
       return NextResponse.json(
         { error: 'Access denied' },
         { status: 403 }
@@ -56,15 +56,15 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await connectDB();
+    await connectToDatabase();
     
     const session = await getServerSession(authOptions);
-    const orderId = params.id;
+    const { id: orderId } = await params;
 
-    if (!session?.user?.isAdmin) {
+    if (session?.user?.role !== 'admin') {
       return NextResponse.json(
         { error: 'Admin access required' },
         { status: 403 }

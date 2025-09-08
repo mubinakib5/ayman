@@ -222,7 +222,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   };
 
   const addBookToCart = (book: Book, format: 'physical' | 'digital' = 'physical') => {
-    const price = format === 'digital' ? book.digitalPrice || book.price : book.price;
+    const price = book.price;
     addItem({
       id: book._id,
       type: 'book',
@@ -239,18 +239,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       id: painting._id,
       type: 'painting',
       title: painting.title,
-      price: painting.price,
+      price: painting.price || 0,
       image: painting.images[0],
-      dimensions: painting.dimensions,
+      dimensions: `${painting.dimensions.width}x${painting.dimensions.height} ${painting.dimensions.unit}`,
     });
-  };
-
-  const getTotalItems = () => {
-    return state.items.reduce((total, item) => total + item.quantity, 0);
-  };
-
-  const getTotalPrice = () => {
-    return state.items.reduce((total, item) => total + (item.price * item.quantity), 0);
   };
 
   const value = {
@@ -265,8 +257,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     closeCart,
     addBookToCart,
     addPaintingToCart,
-    getTotalItems,
-    getTotalPrice,
   };
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
