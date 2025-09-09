@@ -21,12 +21,13 @@ interface PaintingFormData {
 }
 
 interface EditPaintingPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default function EditPaintingPage({ params }: EditPaintingPageProps) {
+  const [paintingId, setPaintingId] = useState<string>('');
   const { data: session, status } = useSession();
   const router = useRouter();
   const [painting, setPainting] = useState<Painting | null>(null);
@@ -52,8 +53,15 @@ export default function EditPaintingPage({ params }: EditPaintingPageProps) {
     error: imageError
   } = useFileUpload();
 
+  // Resolve async params
   useEffect(() => {
-    if (status === 'loading') return;
+    params.then(resolvedParams => {
+      setPaintingId(resolvedParams.id);
+    });
+  }, [params]);
+
+  useEffect(() => {
+    if (status === 'loading' || !paintingId) return;
     
     if (!session || session.user?.role !== 'admin') {
       router.push('/auth/signin');
@@ -61,11 +69,11 @@ export default function EditPaintingPage({ params }: EditPaintingPageProps) {
     }
 
     fetchPainting();
-  }, [session, status, router, params.id]);
+  }, [session, status, router, paintingId]);
 
   const fetchPainting = async () => {
     try {
-      const response = await fetch(`/api/admin/paintings/${params.id}`);
+      const response = await fetch(`/api/admin/paintings/${paintingId}`);
       if (response.ok) {
         const paintingData = await response.json();
         setPainting(paintingData);
@@ -146,7 +154,7 @@ export default function EditPaintingPage({ params }: EditPaintingPageProps) {
 
     setSaving(true);
     try {
-      const response = await fetch(`/api/admin/paintings/${params.id}`, {
+      const response = await fetch(`/api/admin/paintings/${paintingId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

@@ -8,12 +8,13 @@ import { Order } from '@/types';
 import { formatDate } from '@/lib/utils';
 
 interface OrderDetailPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default function OrderDetailPage({ params }: OrderDetailPageProps) {
+  const [orderId, setOrderId] = useState<string>('');
   const { data: session, status } = useSession();
   const router = useRouter();
   const [order, setOrder] = useState<Order | null>(null);
@@ -22,8 +23,15 @@ export default function OrderDetailPage({ params }: OrderDetailPageProps) {
   const [notes, setNotes] = useState('');
   const [trackingNumber, setTrackingNumber] = useState('');
 
+  // Resolve async params
   useEffect(() => {
-    if (status === 'loading') return;
+    params.then(resolvedParams => {
+      setOrderId(resolvedParams.id);
+    });
+  }, [params]);
+
+  useEffect(() => {
+    if (status === 'loading' || !orderId) return;
     
     if (!session || session.user?.role !== 'admin') {
       router.push('/auth/signin');
@@ -31,11 +39,11 @@ export default function OrderDetailPage({ params }: OrderDetailPageProps) {
     }
 
     fetchOrder();
-  }, [session, status, router, params.id]);
+  }, [session, status, router, orderId]);
 
   const fetchOrder = async () => {
     try {
-      const response = await fetch(`/api/admin/orders/${params.id}`);
+      const response = await fetch(`/api/admin/orders/${orderId}`);
       if (response.ok) {
         const orderData = await response.json();
         setOrder(orderData);
@@ -54,7 +62,7 @@ export default function OrderDetailPage({ params }: OrderDetailPageProps) {
   const updateOrderStatus = async (status: string) => {
     setUpdating(true);
     try {
-      const response = await fetch(`/api/admin/orders/${params.id}`, {
+      const response = await fetch(`/api/admin/orders/${orderId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -76,7 +84,7 @@ export default function OrderDetailPage({ params }: OrderDetailPageProps) {
   const updateOrderDetails = async () => {
     setUpdating(true);
     try {
-      const response = await fetch(`/api/admin/orders/${params.id}`, {
+      const response = await fetch(`/api/admin/orders/${orderId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

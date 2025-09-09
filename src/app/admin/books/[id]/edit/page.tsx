@@ -20,12 +20,13 @@ interface BookFormData {
 }
 
 interface EditBookPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default function EditBookPage({ params }: EditBookPageProps) {
+  const [bookId, setBookId] = useState<string>('');
   const { data: session, status } = useSession();
   const router = useRouter();
   const [book, setBook] = useState<Book | null>(null);
@@ -56,8 +57,15 @@ export default function EditBookPage({ params }: EditBookPageProps) {
     error: pdfError
   } = useFileUpload();
 
+  // Resolve async params
   useEffect(() => {
-    if (status === 'loading') return;
+    params.then(resolvedParams => {
+      setBookId(resolvedParams.id);
+    });
+  }, [params]);
+
+  useEffect(() => {
+    if (status === 'loading' || !bookId) return;
     
     if (!session || session.user?.role !== 'admin') {
       router.push('/auth/signin');
@@ -65,11 +73,11 @@ export default function EditBookPage({ params }: EditBookPageProps) {
     }
 
     fetchBook();
-  }, [session, status, router, params.id]);
+  }, [session, status, router, bookId]);
 
   const fetchBook = async () => {
     try {
-      const response = await fetch(`/api/admin/books/${params.id}`);
+      const response = await fetch(`/api/admin/books/${bookId}`);
       if (response.ok) {
         const bookData = await response.json();
         setBook(bookData);
@@ -159,7 +167,7 @@ export default function EditBookPage({ params }: EditBookPageProps) {
 
     setSaving(true);
     try {
-      const response = await fetch(`/api/admin/books/${params.id}`, {
+      const response = await fetch(`/api/admin/books/${bookId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
